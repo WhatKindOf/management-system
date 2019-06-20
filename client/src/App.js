@@ -95,14 +95,16 @@ class App extends Component {
     super(props);
     this.state = {
       customers: "",
-      completed: 0
+      completed: 0,
+      searchKeyword: ""
     };
   }
 
   stateRefresh = () => {
     this.setState({
       customers: "",
-      completed: 0
+      completed: 0,
+      searchKeyword: ""
     });
     this.callApi()
       .then(res =>
@@ -137,7 +139,32 @@ class App extends Component {
     });
   };
 
+  handleValueChange = e => {
+    let nextState = {};
+    nextState[e.target.name] = e.target.value;
+    this.setState(nextState);
+  };
+
   render() {
+    const filterdComponents = data => {
+      data = data.filter(c => {
+        return c.name.indexOf(this.state.searchKeyword) > -1;
+      });
+      return data.map(c => {
+        return (
+          <Customer
+            stateRefresh={this.stateRefresh}
+            key={c.id}
+            id={c.id}
+            image={c.image}
+            name={c.name}
+            birthday={c.birthday}
+            gender={c.gender}
+            job={c.job}
+          />
+        );
+      });
+    };
     const { classes } = this.props;
     const cellList = ["번호", "사진", "이름", "생일", "성별", "직업", "설정"];
     return (
@@ -166,6 +193,9 @@ class App extends Component {
                   input: classes.inputInput
                 }}
                 inputProps={{ "aria-label": "Search" }}
+                name="searchKeyword"
+                value={this.state.searchKeyword}
+                onChange={this.handleValueChange}
               />
             </div>
           </Toolbar>
@@ -186,20 +216,7 @@ class App extends Component {
             </TableHead>
             <TableBody>
               {this.state.customers ? (
-                this.state.customers.map(p => {
-                  return (
-                    <Customer
-                      stateRefresh={this.stateRefresh}
-                      key={p.id}
-                      id={p.id}
-                      image={p.image}
-                      name={p.name}
-                      birthday={p.birthday}
-                      gender={p.gender}
-                      job={p.job}
-                    />
-                  );
-                })
+                filterdComponents(this.state.customers)
               ) : (
                 <TableRow>
                   <TableCell colSpan="6" align="center">
